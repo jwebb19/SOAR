@@ -1,0 +1,29 @@
+wm add I2 ^name |some input was given|
+visualize image-type jpg
+visualize architectural-wmes on
+
+#Create a proposal rule that proposes an operator if the attribute/value pair of name/<var> exists on the input-link
+#With <var> equaling any string
+
+sp {propose*InputExists
+   (state <s> ^type state)
+   (<s> ^io <io>)
+   (<io> ^input-link <input>)
+   (<input> ^name <var>)
+-->
+   (<s> ^operator <o> + =)
+   (<o> ^name InputExists)
+   (<o> ^input <var>)
+}
+
+#Create a application rule that checks if the operator is proposed. 
+#Apply the operator by printing the string on the input link.
+
+sp {apply*InputExists
+   (state <s> ^operator <o>)
+   (<o> ^name InputExists)
+   (<o> ^input <var>)
+-->
+   (write |input received was:| <var>)
+}
+
