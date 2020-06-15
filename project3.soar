@@ -1,0 +1,91 @@
+sp {propose*init
+  (state <s> ^type state)
+  (<s> ^superstate nil)
+  (<s> -^agent)
+-->
+  (<s> ^operator <o> + !)
+  (<o> ^name init)
+}
+
+sp {apply*init
+  (state <s> ^operator <o>)
+  (<o> ^name init)
+-->
+  (<s> ^agent number)
+  (<s> ^val1 25)
+  (<s> ^val2 10)
+}
+
+sp {elaboration*addValues
+  (state <s> ^agent number)
+  (<s> ^val1 <v1>)
+  (<s> ^val2 <v2>)
+-->
+  (<s> ^combinedVals (+ <v1> <v2>))
+}
+
+sp {propose*decrease2
+  (state <s> ^agent number)
+  (<s> ^combinedVals > 20)
+-->
+  (<s> ^operator <o> + >)
+  (<o> ^name decrease2)
+}
+
+sp {apply*decrease2
+  (state <s> ^agent number)
+  (<s> ^operator <o>)
+  (<o> ^name decrease2)
+  (<s> ^val1 <v1>)
+-->
+  (<s> ^val1 <v1> -)
+  (<s> ^val1 (- <v1> 2))
+}
+
+sp {propose*decrease1
+  (state <s> ^agent number)
+  (<s> ^combinedVals > 0)
+-->
+  (<s> ^operator <o> + >)
+  (<o> ^name decrease1)
+}
+
+sp {apply*decrease1
+  (state <s> ^agent number)
+  (<s> ^operator <o>)
+  (<o> ^name decrease1)
+  (<s> ^val1 <v1>)
+-->
+  (<s> ^val1 <v1> -)
+  (<s> ^val1 (- <v1> 1))
+}
+
+sp {propose*Substate*breakImpasse
+  (state <s> ^impasse tie)
+  (<s> ^item <o1>)
+  (<s> ^item <o2>)
+  (<o1> ^name decrease1)
+  (<o2> ^name decrease2)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name breakImpasse)
+}
+
+sp {apply*Substate*breakImpasse
+  (state <s> ^operator <o>)
+  (<o> ^name breakImpasse)
+  (<s> ^superstate <ss>)
+  (<ss> ^operator <o1> +)
+  (<ss> ^operator <o2> +)
+  (<o1> ^name decrease1)
+  (<o2> ^name decrease2)
+-->
+  (<ss> ^operator <o2> > <o1>)
+}
+
+sp {detect
+  (state <s> ^combinedVals 0)
+-->
+  (write |combined value has reached 0|)
+  (halt)
+}
