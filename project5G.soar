@@ -1,0 +1,251 @@
+rl -s learning on
+indifferent-selection -g
+
+sp {propose*addAnimals
+  (state <s> ^type state)
+  (<s> -^locations)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name addAnimals)
+}
+
+sp {apply*addAnimals
+  (state <s> ^operator <o>)
+  (<o> ^name addAnimals)
+-->
+  (<s> ^locations <loc>)
+  (<loc> ^side1 <side1>)
+  (<loc> ^side2 <side2>)
+  (<side1> ^item rabbit)
+  (<side1> ^item lettuce)
+  (<side1> ^item fox)
+  (<side1> ^other side2)
+  (<side2> ^other side1)
+  (<s> ^location side1)
+}
+
+sp {propose*moveWithItem
+  (state <s> ^type state)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.item <item>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name moveWithItem)
+  (<o> ^item <item>)
+}
+
+sp {apply*moveWithItem
+  (state <s> ^operator <o>)
+  (<o> ^name moveWithItem)
+  (<o> ^item <item>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side> <current>)
+  (<s> ^locations.<other> <otherside>)
+  (<current> ^item <item>)
+  (<current> ^other <other>)
+-->
+  (<current> ^item <item> -)
+  (<s> ^location <side> -)
+  (<s> ^location <other>)
+  (<otherside> ^item <item>)
+}
+
+sp {propose*moveWithoutItem
+  (state <s> ^type state)
+  (<s> ^location side2)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name moveWithoutItem)
+}
+
+sp {apply*moveWithoutItem
+  (state <s> ^operator <o>)
+  (<o> ^name moveWithoutItem)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+-->
+  (<s> ^location <side> -)
+  (<s> ^location <other>)
+}
+
+sp {detect*rabbitEaten
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> ^locations.<other> <otherside>)
+  (<otherside> ^item fox)
+  (<otherside> ^item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value -1)
+  (write |rabbit eaten|(crlf))
+  (halt)
+}
+
+sp {elaboration*rabbitNotEaten1
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> -^locations.<other>.item fox)
+  (<s> -^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {elaboration*rabbitNotEaten2
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> ^locations.<other>.item fox)
+  (<s> -^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {elaboration*rabbitNotEaten3
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> -^locations.<other>.item fox)
+  (<s> ^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {detect*lettuceEaten
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> ^locations.<other> <otherside>)
+  (<otherside> ^item lettuce)
+  (<otherside> ^item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value -1)
+  (write |lettuce eaten|(crlf))
+  (halt)
+}
+
+sp {elaboration*lettuceNotEaten1
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> -^locations.<other>.item lettuce)
+  (<s> -^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {elaboration*lettuceNotEaten2
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> ^locations.<other>.item lettuce)
+  (<s> -^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {elaboration*lettuceNotEaten3
+  (state <s> ^operator <o>)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.other <other>)
+  (<s> -^locations.<other>.item lettuce)
+  (<s> ^locations.<other>.item rabbit)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 0.1)
+}
+
+sp {detect*goal
+  (state <s> ^type state)
+  (<s> ^locations.side2 <side2>)
+  (<s> ^location side2)
+  (<side2> ^item lettuce)
+  (<side2> ^item rabbit)
+  (<side2> ^item fox)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 1)
+  (write |success|(crlf))
+  (halt)
+}
+
+sp {rl*move*preventEatenRabbit
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithItem ^item rabbit)
+  (<s> ^location <side>)
+  (<s> ^locations.<side>.item rabbit)
+  (<s> ^locations.<side>.item fox)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*move*nothing1
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithoutItem)
+  (<s> ^location side2)
+  (<s> ^locations.side2.item rabbit)
+  (<s> -^locations.side2.item fox)
+  (<s> -^locations.side2.item lettuce)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*move*nothing2
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithoutItem)
+  (<s> ^location side2)
+  (<s> -^locations.side2.item rabbit)
+  (<s> ^locations.side2.item fox)
+  (<s> ^locations.side2.item lettuce)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*move*fox
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithItem ^item fox)
+  (<s> ^location side1)
+  (<s> -^locations.side1.item rabbit)
+  (<s> ^locations.side1.item fox)
+  (<s> ^locations.side1.item lettuce)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*move*lettuce
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithItem ^item lettuce)
+  (<s> ^location side1)
+  (<s> ^locations.side1.item rabbit)
+  (<s> -^locations.side1.item fox)
+  (<s> ^locations.side1.item lettuce)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*move*rabbit
+  (state <s> ^operator <op> +)
+  (<op> ^name moveWithItem ^item fox)
+  (<s> ^location side1)
+  (<s> ^locations.side1.item rabbit)
+  (<s> -^locations.side1.item fox)
+  (<s> -^locations.side1.item lettuce)
+-->
+  (<s> ^operator <op> = 0)
+}
