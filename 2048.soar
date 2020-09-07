@@ -1,0 +1,1366 @@
+rl -s learning on
+indifferent-selection -g
+
+#### initialize
+sp {top*propose*init
+ (state <s> ^superstate nil)
+ (<s> -^init)
+-->
+ (<s> ^operator <op> + !)
+ (<op> ^name init)
+}
+
+sp {top*apply*init
+ (state <s> ^operator <op> ^superstate nil)
+ (<op> ^name init)
+-->
+ (<s> ^init true)
+ (<s> ^last1Move x)
+ (<s> ^last2Move x)
+ (<s> ^last3Move x)
+ (<s> ^last4Move x)
+ (<s> ^canMoveUp true)
+ (<s> ^canMoveDown true)
+ (<s> ^canMoveLeft true)
+ (<s> ^canMoveRight true)
+ (<s> ^leftMatchCount 0)
+ (<s> ^leftTempCount 0)
+ (<s> ^highLeftMatch 0)
+ (<s> ^downMatchCount 0)
+ (<s> ^downTempCount 0)
+ (<s> ^highDownMatch 0)
+ (<s> ^blockCount 0)
+ (<s> ^blockTempCount 0)
+ (<s> ^lastBlockCount 2)
+ (<s> ^readyForMove false)
+ (<s> ^myBlocks <myBlocks>) 
+ (<s> ^myDownBlocks <myDownBlocks>) 
+ (<s> ^myLeftBlocks <myLeftBlocks>) 
+ (<s> ^reset false)
+}
+
+##### CLEAN Output Link
+sp {top*propose*cleanupOutput
+  (state <s> ^superstate nil ^io.output-link <output>)
+  (<output> ^<cmd> <id>)
+  (<id> ^status)
+  (<s> ^reset true)
+-->
+  (<s> ^operator cleanOut + !)
+}
+
+sp {top*apply*cleanupOutput
+  (state <s> ^operator <op> ^superstate nil ^io.output-link <output>)
+  (<output> ^<cmd> <id>)
+  (<id> ^status)
+  (<s> ^reset true)
+  (<s> ^last1Move <last1>)
+  (<s> ^last2Move <last2>)
+  (<s> ^last3Move <last3>)
+  (<s> ^last4Move <last4>)
+  (<s> ^canMoveUp <canUp>)
+  (<s> ^canMoveDown <canDown>)
+  (<s> ^canMoveLeft <canLeft>)
+  (<s> ^canMoveRight <canRight>)
+  (<s> ^leftMatchCount <leftCount>)
+  (<s> ^highLeftMatch <highLeft>)
+  (<s> ^downMatchCount <downCount>)
+  (<s> ^highDownMatch <highDown>)
+  (<s> ^blockCount <count>)
+  (<s> ^lastBlockCount <lastCount>)
+-->
+  (<output> ^<cmd> <id> -)
+  (<s> ^last4Move <last4> -)
+  (<s> ^last4Move <last3>)
+  (<s> ^last3Move <last3> -)
+  (<s> ^last3Move <last2>)
+  (<s> ^last2Move <last2> -)
+  (<s> ^last2Move <last1>)
+  (<s> ^last1Move <last1> -)
+  (<s> ^last1Move <d>)
+  (<s> ^canMoveUp <canUp> -)
+  (<s> ^canMoveUp true)
+  (<s> ^canMoveDown <canDown> -)
+  (<s> ^canMoveDown true)
+  (<s> ^canMoveLeft <canLeft> -)
+  (<s> ^canMoveLeft true)
+  (<s> ^canMoveRight <canRight> -)
+  (<s> ^canMoveRight true)
+  (<s> ^leftMatchCount <leftCount> -)
+  (<s> ^leftMatchCount 0)
+  (<s> ^highLeftMatch <highLeft> -)
+  (<s> ^highLeftMatch 0)
+  (<s> ^downMatchCount <downCount> -)
+  (<s> ^downMatchCount 0)
+  (<s> ^highDownMatch <highDown> -)
+  (<s> ^highDownMatch 0)
+  (<s> ^lastBlockCount <lastCount> -)
+  (<s> ^lastBlockCount <count>)
+  (<s> ^blockCount <count> -)
+  (<s> ^blockCount 0)
+  (<s> ^reset true -)
+  (<s> ^reset false)
+}
+
+#### countBlocks
+sp {propose*addBlock
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.name <name>)
+  (<s> ^myBlocks <myBlocks>)
+  (<myBlocks> -^name <name>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name addBlock)
+  (<o> ^blockName <name>)
+#  (write |propose add block|(crlf))
+}
+sp {apply*addBlock
+  (state <s> ^operator <op>)
+  (<op> ^name addBlock)
+  (<op> ^blockName <name>)
+  (<s> ^blockCount <count>)
+  (<s> ^blockTempCount <temp>)
+  (<s> ^myBlocks <myBlocks>)
+-->
+  (<s> ^blockCount <count> -)
+  (<s> ^blockCount (+ <count> 1))
+  (<s> ^blockTempCount <temp> -)
+  (<s> ^blockTempCount (+ <temp> 1))
+  (<myBlocks> ^name <name>)
+#  (write |apply add block|(crlf))
+}
+
+#### countDownMatches
+sp {propose*addDownMatch
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.d = <val>)  
+  (<input> ^<block>.name <name>)
+  (<s> ^myBlocks <myBlocks>)
+  (<myBlocks> ^name <name>)
+  (<s> ^myDownBlocks <myDownBlocks>)
+  (<myDownBlocks> -^name <name>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name addDownMatch)
+  (<o> ^blockName <name>)
+#  (write |propose add down match|(crlf))
+}
+sp {apply*addDownMatch
+  (state <s> ^operator <op>)
+  (<op> ^name addDownMatch)
+  (<op> ^blockName <name>)
+  (<s> ^downMatchCount <count>)
+  (<s> ^downTempCount <temp>)
+  (<s> ^myDownBlocks <myDownBlocks>)
+-->
+  (<s> ^downMatchCount <count> -)
+  (<s> ^downMatchCount (+ <count> 1))
+  (<s> ^downTempCount <temp> -)
+  (<s> ^downTempCount (+ <temp> 1))
+  (<myDownBlocks> ^name <name>)
+#  (write |apply add down match|(crlf))
+}
+
+#### find high down match
+sp {propose*highDownMatch
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^highDownMatch <high>)
+  (<input> ^<block>.value > <high>)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.d = <val>)  
+  (<input> ^<block>.name <name>)
+  (<s> ^myBlocks <myBlocks>)
+  (<s> ^myDownBlocks <myDownBlocks>)
+  (<myBlocks> ^name <name>)
+  (<myDownBlocks> ^name <name>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name highDownMatch)
+  (<o> ^value <val>)
+#  (write |propose high down match|(crlf))
+}
+sp {apply*highDownMatch
+  (state <s> ^operator <op>)
+  (<op> ^name highDownMatch)
+  (<op> ^value <val>)
+  (<s> ^highDownMatch <high>)
+  (<s> ^myDownBlocks <myDownBlocks>)
+-->
+  (<s> ^highDownMatch <high> -)
+  (<s> ^highDownMatch <val>)
+  (<myDownBlocks> ^name <name> -)
+#  (write |apply high down match|(crlf))
+}
+
+#### countLeftMatches
+sp {propose*addLeftMatch
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.l = <val>)  
+  (<input> ^<block>.name <name>)
+  (<s> ^myBlocks <myBlocks>)
+  (<s> ^myLeftBlocks <myLeftBlocks>)
+  (<myBlocks> ^name <name>)
+  (<myLeftBlocks> -^name <name>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name addLeftMatch)
+  (<o> ^blockName <name>)
+#  (write |propose add left match|(crlf))
+}
+sp {apply*addLeftMatch
+  (state <s> ^operator <op>)
+  (<op> ^name addLeftMatch)
+  (<op> ^blockName <name>)
+  (<s> ^leftMatchCount <count>)
+  (<s> ^leftTempCount <temp>)
+  (<s> ^myLeftBlocks <myLeftBlocks>)
+-->
+  (<s> ^leftMatchCount <count> -)
+  (<s> ^leftMatchCount (+ <count> 1))
+  (<s> ^leftTempCount <temp> -)
+  (<s> ^leftTempCount (+ <temp> 1))
+  (<myLeftBlocks> ^name <name>)
+#  (write |apply add left match|(crlf))
+}
+
+#### find high left match
+sp {propose*highLeftMatch
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^highLeftMatch <high>)
+  (<input> ^<block>.value > <high>)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.l = <val>)  
+  (<input> ^<block>.name <name>)
+  (<s> ^myBlocks <myBlocks>)
+  (<s> ^myLeftBlocks <myLeftBlocks>)
+  (<myBlocks> ^name <name>)
+  (<myLeftBlocks> ^name <name>)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name highLeftMatch)
+  (<o> ^value <val>)
+#  (write |propose high left match|(crlf))
+}
+sp {apply*highLeftMatch
+  (state <s> ^operator <op>)
+  (<op> ^name highLeftMatch)
+  (<op> ^value <val>)
+  (<s> ^highLeftMatch <high>)
+  (<s> ^myLeftBlocks <myLeftBlocks>)
+-->
+  (<s> ^highLeftMatch <high> -)
+  (<s> ^highLeftMatch <val>)
+  (<myLeftBlocks> ^name <name> -)
+#  (write |apply high left match|(crlf))
+}
+
+#### cannot move down
+sp {propose*canNotMoveDown
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^canMoveDown true)
+  -{(<input> ^<block1>.dBlock <dBlock>)
+  (<input> ^<block1>.value > 0)
+  (<input> ^<block1>.value <val>)
+  (<input> ^<block1>.d <> <val>)
+  (<input> -^<block1>.wall d)
+  (<input> ^<block2>.name = <dBlock>)
+  (<input> ^<block2>.value = 0)}
+  -{(<input> ^<matchblock>.value > 0)
+  (<input> ^<matchblock>.value <val2>)
+  (<input> ^<matchblock>.d = <val2>)}  
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name canNotMoveDown)
+#  (write |propose can not move down|(crlf))
+}
+sp {apply*canNotMoveDown
+  (state <s> ^operator <op>)
+  (<op> ^name canNotMoveDown)
+  (<s> ^canMoveDown <d>)
+-->
+  (<s> ^canMoveDown <d> -)
+  (<s> ^canMoveDown false)
+#  (write |apply can not move down|(crlf))
+}
+
+#### cannot move left
+sp {propose*canNotMoveLeft
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^canMoveLeft true)
+  -{(<input> ^<block1>.lBlock <lBlock>)
+  (<input> ^<block1>.value > 0)
+  (<input> ^<block1>.value <val>)
+  (<input> ^<block1>.l <> <val>)
+  (<input> -^<block1>.wall l)
+  (<input> ^<block2>.name = <lBlock>)
+  (<input> ^<block2>.value = 0)}
+  -{(<input> ^<matchblock>.value > 0)
+  (<input> ^<matchblock>.value <val2>)
+  (<input> ^<matchblock>.l = <val2>)}  
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name canNotMoveLeft)
+#  (write |propose can not move left|(crlf))
+}
+sp {apply*canNotMoveLeft
+  (state <s> ^operator <op>)
+  (<op> ^name canNotMoveLeft)
+  (<s> ^canMoveLeft <d>)
+-->
+  (<s> ^canMoveLeft <d> -)
+  (<s> ^canMoveLeft false)
+#  (write |apply can not move left|(crlf))
+}
+
+#### cannot move right
+sp {propose*canNotMoveRight
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^canMoveRight true)
+  -{(<input> ^<block1>.rBlock <rBlock>)
+  (<input> ^<block1>.value > 0)
+  (<input> ^<block1>.value <val>)
+  (<input> ^<block1>.r <> <val>)
+  (<input> -^<block1>.wall r)
+  (<input> ^<block2>.name = <rBlock>)
+  (<input> ^<block2>.value = 0)}
+  -{(<input> ^<matchblock>.value > 0)
+  (<input> ^<matchblock>.value <val2>)
+  (<input> ^<matchblock>.r = <val2>)}  
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name canNotMoveRight)
+#  (write |propose can not move right|(crlf))
+}
+sp {apply*canNotMoveRight
+  (state <s> ^operator <op>)
+  (<op> ^name canNotMoveRight)
+  (<s> ^canMoveRight <d>)
+-->
+  (<s> ^canMoveRight <d> -)
+  (<s> ^canMoveRight false)
+#  (write |apply can not move right|(crlf))
+}
+
+#### cannot move up
+sp {propose*canNotMoveUp
+  (state <s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove false)
+  (<s> ^canMoveUp true)
+  -{(<input> ^<block1>.uBlock <uBlock>)
+  (<input> ^<block1>.value > 0)
+  (<input> ^<block1>.value <val>)
+  (<input> ^<block1>.u <> <val>)
+  (<input> -^<block1>.wall u)
+  (<input> ^<block2>.name = <uBlock>)
+  (<input> ^<block2>.value = 0)}
+  -{(<input> ^<matchblock>.value > 0)
+  (<input> ^<matchblock>.value <val2>)
+  (<input> ^<matchblock>.u = <val2>)}  
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name canNotMoveUp)
+#  (write |propose can not move up|(crlf))
+}
+sp {apply*canNotMoveUp
+  (state <s> ^operator <op>)
+  (<op> ^name canNotMoveUp)
+  (<s> ^canMoveUp <d>)
+-->
+  (<s> ^canMoveUp <d> -)
+  (<s> ^canMoveUp false)
+#  (write |apply can not move up|(crlf))
+}
+
+#### resolve no state change impasse to make move
+sp {propose*Substate*breakImpasse
+  (state <s> ^impasse no-change ^attribute state)   
+  (<s> ^superstate <ss>)
+  (<ss> ^readyForMove false)
+-->
+  (<s> ^operator <o> +) 
+  (<o> ^name breakImpasse)
+#  (write |making ready for move|(crlf))
+}
+
+sp {apply*Substate*breakImpasse
+  (state <s> ^operator <o>)
+  (<o> ^name breakImpasse)
+  (<s> ^superstate <ss>)
+  (<ss> ^readyForMove false)
+-->
+  (<ss> ^operator <sso> + !)
+  (<sso> ^name makeReady)
+}
+
+sp {apply*makeReady
+  (state <s> ^operator <op>)
+  (<s> ^superstate nil)
+  (<op> ^name makeReady)
+  (<s> ^readyForMove false)
+-->
+  (<s> ^readyForMove false -)
+  (<s> ^readyForMove true)
+#  (write |readying |(crlf))
+}
+
+##### clean up temporary block info before moving
+sp {propose*cleanDownBlocks
+  (state <s> ^type state)
+  (<s> ^readyForMove true)
+  (<s> ^myDownBlocks <myDownBlocks>) 
+  (<s> ^downTempCount > 0)
+-->
+  (<s> ^operator <o> + !)
+  (<o> ^name cleanDownBlocks)
+#  (write |propose clean down blocks|(crlf))
+}
+sp {apply*cleanDownBlocks
+  (state <s> ^operator <op>)
+  (<op> ^name cleanDownBlocks)
+  (<s> ^downTempCount <temp>)
+  (<s> ^myDownBlocks <myDownBlocks>) 
+  (<myDownBlocks> ^<dname> <dblock>)
+-->
+  (<s> ^downTempCount <temp> -)
+  (<s> ^downTempCount 0)
+  (<myDownBlocks> ^<dname> <dblock> -)
+#  (write |apply clean down blocks|(crlf))
+}
+
+sp {propose*cleanLeftBlocks
+  (state <s> ^type state)
+  (<s> ^readyForMove true)
+  (<s> ^myLeftBlocks <myLeftBlocks>) 
+  (<s> ^leftTempCount > 0)
+  (<s> ^downTempCount = 0)
+-->
+  (<s> ^operator <o> + !)
+  (<o> ^name cleanLeftBlocks)
+#  (write |propose clean left blocks|(crlf))
+}
+sp {apply*cleanLeftBlocks
+  (state <s> ^operator <op>)
+  (<op> ^name cleanLeftBlocks)
+  (<s> ^leftTempCount <temp>)
+  (<s> ^myLeftBlocks <myLeftBlocks>) 
+  (<myLeftBlocks> ^<lname> <lblock>)
+-->
+  (<s> ^leftTempCount <temp> -)
+  (<s> ^leftTempCount 0)
+  (<myLeftBlocks> ^<lname> <lblock> -)
+#  (write |apply clean left blocks|(crlf))
+}
+
+sp {propose*cleanMyBlocks
+  (state <s> ^type state)
+  (<s> ^readyForMove true)
+  (<s> ^myBlocks <myBlocks>) 
+  (<s> ^blockTempCount > 0)
+  (<s> ^leftTempCount = 0)
+  (<s> ^downTempCount = 0)
+-->
+  (<s> ^operator <o> + !)
+  (<o> ^name cleanMyBlocks)
+#  (write |propose clean my blocks|(crlf))
+}
+sp {apply*cleanMyBlocks
+  (state <s> ^operator <op>)
+  (<op> ^name cleanMyBlocks)
+  (<s> ^blockTempCount <temp>)
+  (<s> ^myBlocks <myBlocks>) 
+  (<myBlocks> ^<name> <block>)
+-->
+  (<s> ^blockTempCount <temp> -)
+  (<s> ^blockTempCount 0)
+  (<myBlocks> ^<name> <block> -)
+#  (write |apply clean my blocks|(crlf))
+}
+
+##### main rules
+sp {apply*move
+  (state <s> ^operator <op>  ^io.output-link <output>)
+  (<op> ^name move ^direction <d>)
+  (<s> ^readyForMove true)
+  (<s> ^reset false)
+-->
+  (<s> ^reset false -)
+  (<s> ^reset true)
+  (<s> ^readyForMove true -)
+  (<s> ^readyForMove false)
+  (<output> ^otherlink.direction <d>)
+  (write |############################# MOVING | <d> (crlf))
+}
+
+#### move Down
+sp {propose*moveDown
+  (state <s> ^type state ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove true)
+  (<s> ^canMoveDown true)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name move)
+  (<o> ^direction d)
+  (write |############################# proposing moveDown|(crlf))
+}
+
+#### Down Reinforcement
+sp {rl*moveDown
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction d)
+  (<s> ^canMoveDown true)
+-->
+  (<s> ^operator <op> = .01)
+}
+
+#|-------|
+#| lower |
+#|-------|
+#    .
+#    .
+#    .  
+#|-------|   |--------|
+#| empty*|...| higher=|
+#|-------|   |--------|
+sp {rl*moveDownWithLowerValueAboveEmptyHigherOnRight
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction d) 
+  (<input> ^<block>.value = 0)
+  (<input> -^<block>.wall u)
+  (<input> ^<block>.u > 0)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.r > 0)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.r >= <uVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#            |--------|
+#            | same   |
+#            |--------|
+#                .
+#                .
+#                .
+#|-------|   |--------|
+#| same  |...| same*  |
+#|-------|   |--------|
+sp {rl*moveDownWithReverseLPattern
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction d) 
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <baseVal>)
+  (<input> ^<block>.u = <baseVal>)
+  (<input> ^<block>.l = <baseVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#### Down Rewards
+
+#sp {elaboration*moveDown
+#  (state <s> ^operator <op>)
+#  (<op> ^name move ^direction d)
+#  (<s> ^canMoveDown true)
+#  (<s> ^reward-link <r>)
+#-->
+#  (<r> ^reward <rr>)
+#  (<rr> ^value .0001)
+#  (write |#############################  Reward moving down .0001|(crlf))
+#}
+
+#|-------|
+#| lower |
+#|-------|
+#    .
+#    .
+#    .  
+#|-------|   |--------|
+#| empty*|...| higher=|
+#|-------|   |--------|
+sp {elaboration*moveDownWithLowerValueAboveEmptyHigherOnRight
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction d) 
+  (<input> ^<block>.value = 0)
+  (<input> -^<block>.wall u)
+  (<input> ^<block>.u > 0)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.r > 0)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.r >= <uVal>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value (- 0 <rVal>))
+  (write |#############################  PENALIZE move down with lower value above than on right|(- 0 <rVal>)(crlf))
+}
+
+#            |--------|
+#            | same   |
+#            |--------|
+#                .
+#                .
+#                .
+#|-------|   |--------|
+#| same  |...| same*  |
+#|-------|   |--------|
+sp {elaboration*moveDownWithReverseLPattern
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction d) 
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <baseVal>)
+  (<input> ^<block>.u = <baseVal>)
+  (<input> ^<block>.l = <baseVal>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value (- 0 <baseVal>))
+  (write |#############################  PENALIZE move down with reverse L Pattern |(- 0 <baseVal>)(crlf))
+}
+
+#### move Left
+sp {propose*moveLeft
+  (state <s> ^type state ^io.input-link <input>)
+  (<s> ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove true)
+  (<s> ^canMoveLeft true)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name move)
+  (<o> ^direction l)
+  (write |############################# proposing moveLeft|(crlf))
+}
+
+#### Left Reinforcement
+sp {rl*moveLeft
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction l)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft true)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*moveLeftWithNonFullBottomRowWhenCanMoveLeftOrDown
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<s> ^canMoveLeft true)
+  (<s> ^canMoveDown true)
+  -{(<input> ^block12 > 0)
+  (<input> ^block13 > 0)
+  (<input> ^block14 > 0)
+  (<input> ^block15 > 0)}
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#            |--------|
+#            | same   |
+#            |--------|
+#                .
+#                .
+#                .
+#|-------|   |--------|
+#| same  |...| same*  |
+#|-------|   |--------|
+sp {rl*moveLeftWithReverseLPattern
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <baseVal>)
+  (<input> ^<block>.u = <baseVal>)
+  (<input> ^<block>.l = <baseVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#|----------|-------|--------|----------|
+#| not same | empty | same   | not same |
+#|----------|-------|--------|----------|
+#|          | same* |        |          |
+#|----------|-------|--------|----------|
+sp {rl*moveLeftLiningUpVerticalMatch
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall r)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value = 0)
+  (<input> ^<blockUp>.l <> <val>)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = <val>)
+  (<input> ^<blockUpRight>.r <> <val>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#|----------|----------|--------|----------|
+#| empty    | not same | same   | not same |
+#|----------|----------|--------|----------|
+#|          | same*    |        |          |
+#|----------|----------|--------|----------|
+sp {rl*moveLeftLiningUpVerticalMatch2
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall r)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value > 0)
+  (<input> ^<blockUp>.value <> val)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = 0)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = <val>)
+  (<input> ^<blockUpRight>.r <> <val>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#|-------|
+#| lower |
+#|-------|
+#    .
+#    .
+#    .  
+#|-------|   |--------|
+#| empty |...| higher=|
+#|-------|   |--------|
+sp {rl*moveLeftWithLowerValueAboveEmptyHigherOnRightAgainstLeftWall
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value = 0)
+  (<input> -^<block>.wall u)
+  (<input> ^<block>.u > 0)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.r > 0)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.r >= <uVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+##### Left Rewards
+
+sp {elaboration*moveLeftWithNonFullBottomRowWhenCanMoveLeftOrDown
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<s> ^canMoveLeft true)
+  (<s> ^canMoveDown true)
+  -{(<input> ^block12 > 0)
+  (<input> ^block13 > 0)
+  (<input> ^block14 > 0)
+  (<input> ^block15 > 0)}
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 5)
+  (write |#############################  REWARD move left when bottom row is not full and can move left or Down 5|(crlf))
+}
+
+#|----------|-------|--------|----------|
+#| not same | empty | same   | not same |
+#|----------|-------|--------|----------|
+#|          | same* |        |          |
+#|----------|-------|--------|----------|
+sp {elaboration*moveLeftLiningUpVerticalMatch
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall r)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value = 0)
+  (<input> ^<blockUp>.l <> <val>)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = <val>)
+  (<input> ^<blockUpRight>.r <> <val>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <val>)
+  (write |#############################  REWARD move left lining up VERTICAL match |<val>(crlf))
+}
+
+#|----------|----------|--------|----------|
+#| empty    | not same | same   | not same |
+#|----------|----------|--------|----------|
+#|          | same*    |        |          |
+#|----------|----------|--------|----------|
+sp {elaboration*moveLeftLiningUpVerticalMatch2
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall r)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value > 0)
+  (<input> ^<blockUp>.value <> val)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = 0)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = <val>)
+  (<input> ^<blockUpRight>.r <> <val>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <val>)
+  (write |#############################  REWARD move left lining up VERTICAL match |<val>(crlf))
+}
+
+#            |--------|
+#            | same   |
+#            |--------|
+#                .
+#                .
+#                .
+#|-------|   |--------|
+#| same  |...| same*  |
+#|-------|   |--------|
+sp {elaboration*moveLeftWithReverseLPattern
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <baseVal>)
+  (<input> ^<block>.u = <baseVal>)
+  (<input> ^<block>.l = <baseVal>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <baseVal>)
+  (write |#############################  REWARD move left with reverse L pattern |<baseVal>(crlf))
+}
+
+#|-------|
+#| lower |
+#|-------|
+#    .
+#    .
+#    .  
+#|-------|   |--------|
+#| empty*|...| higher=|
+#|-------|   |--------|
+sp {elaboration*moveLeftWithLowerValueAboveEmptyHigherOnRightAgainstLeftWall
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction l) 
+  (<input> ^<block>.value = 0)
+  (<input> -^<block>.wall u)
+  (<input> ^<block>.u > 0)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.r > 0)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.r >= <uVal>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <rVal>)
+  (write |#############################  REWARD move left with lower value above |<rVal>(crlf))
+}
+
+
+##### move Right
+
+sp {propose*moveRight
+  (state <s> ^type state ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove true)
+  (<s> ^canMoveRight true)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name move)
+  (<o> ^direction r)
+  (write |############################# proposing move right|(crlf))
+}
+
+#### Right Reinforcement
+sp {rl*moveRight
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction r)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft false)
+  (<s> ^canMoveRight true)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#|----------|-------|--------|----------|
+#| not same | same  | empty  | not same |
+#|----------|-------|--------|----------|
+#|          |       | same*  |          |
+#|----------|-------|--------|----------|
+sp {rl*moveRightLiningUpVerticalMatch
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value = 0)
+  (<input> ^<blockUp>.r <> <val>)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = <val>)
+  (<input> ^<blockUpLeft>.l <> <val>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {rl*penalizeMoveWithNonFullBottomRowWhenCanMoveLeftOrDown
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<s> ^canMoveLeft true)
+  (<s> ^canMoveDown true)
+  -{(<input> ^block12 > 0)
+  (<input> ^block13 > 0)
+  (<input> ^block14 > 0)
+  (<input> ^block15 > 0)}
+-->
+  (<s> ^operator <op> = 0)
+}
+
+#|----------|-------|----------|----------|
+#| not same | same  | not same | empty    |
+#|----------|-------|----------|----------|
+#|          |       | same*    |          |
+#|----------|-------|----------|----------|
+sp {rl*moveRightLiningUpVerticalMatch2
+  (state <s> ^operator <op> +)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value > 0)
+  (<input> ^<blockUp>.value <> <val>)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = 0)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = <val>)
+  (<input> ^<blockUpLeft>.l <> <val>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+##### Right Rewards
+
+#|----------|-------|--------|----------|
+#| not same | same  | empty  | not same |
+#|----------|-------|--------|----------|
+#|          |       | same*  |          |
+#|----------|-------|--------|----------|
+sp {elaboration*moveRightLiningUpVerticalMatch
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value = 0)
+  (<input> ^<blockUp>.r <> <val>)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = <val>)
+  (<input> ^<blockUpLeft>.l <> <val>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <val>)
+  (write |#############################  REWARD move right lining up VERTICAL match |<val>(crlf))
+}
+
+#|----------|-------|----------|----------|
+#| not same | same  | not same | empty    |
+#|----------|-------|----------|----------|
+#|          |       | same*    |          |
+#|----------|-------|----------|----------|
+sp {elaboration*moveRightLiningUpVerticalMatch2
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> -^<block>.wall u)
+  (<input> -^<block>.wall l)
+  (<input> ^<block>.uBlock <uName>)
+  (<input> ^<blockUp>.name = <uName>)
+  (<input> ^<blockUp>.value > 0)
+  (<input> ^<blockUp>.value <> <val>)
+  (<input> ^<blockUp>.rBlock <urName>)
+  (<input> ^<blockUpRight>.name = <urName>)
+  (<input> ^<blockUpRight>.value = 0)
+  (<input> ^<blockUp>.lBlock <ulName>)
+  (<input> ^<blockUpLeft>.name = <ulName>)
+  (<input> ^<blockUpLeft>.value = <val>)
+  (<input> ^<blockUpLeft>.l <> <val>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value <val>)
+  (write |#############################  REWARD move right lining up VERTICAL match |<val>(crlf))
+}
+
+sp {elaboration*penalizeMoveWithNonFullBottomRowWhenCanMoveLeftOrDown
+  (state <s> ^operator <op>)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<s> ^canMoveLeft true)
+  (<s> ^canMoveDown true)
+  -{(<input> ^block12 > 0)
+  (<input> ^block13 > 0)
+  (<input> ^block14 > 0)
+  (<input> ^block15 > 0)}
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value -5)
+  (write |#############################  PENALIZE move right when bottom row is not full and can move left or Down -5|(crlf))
+}
+
+##### Move UP
+sp {propose*moveUp
+  (state <s> ^type state ^io.input-link <input>)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove true)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft false)
+  (<s> ^canMoveRight false)
+  (<s> ^canMoveUp true)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name move)
+  (<o> ^direction u)
+  (write |############################# proposing moveUp|(crlf))
+}
+
+sp {propose*moveUpWhenNothingLeft
+  (state <s> ^type state)
+  (<s> ^init true)
+  (<s> ^reset false)
+  (<s> ^readyForMove true)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft false)
+  (<s> ^canMoveRight false)
+  (<s> ^canMoveUp false)
+-->
+  (<s> ^operator <o> + =)
+  (<o> ^name move)
+  (<o> ^direction u)
+  (write |############################# proposing moveUpWhenNothingLeft|(crlf))
+}
+
+##### Up Reinforcement
+sp {rl*moveUp
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction u)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft false)
+  (<s> ^canMoveRight false)
+  (<s> ^canMoveUp true)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+##### Up Rewards
+sp {elaboration*moveUp
+  (state <s> ^operator <o>)
+  (<o> ^name move ^direction u)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value -1)
+  (write |############################# PENALIZE moving up|(crlf))
+}
+
+##### goal detection 
+sp {detect*win
+  (state <s> ^io.input-link <input>)
+  (<input> ^<block>.value = 2048)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value 2048)
+  (write |############################# REWARDING win|(crlf))
+}
+
+sp {detect*loss
+  (state <s> ^type state)
+  (<s> ^canMoveDown false)
+  (<s> ^canMoveLeft false)
+  (<s> ^canMoveRight false)
+  (<s> ^canMoveUp false)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value -1)
+  (write |############################# PENALIZING loss|(crlf))
+}
+
+#### generated RL 
+
+sp {generated*rule*template
+  :template
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction r)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^block0.value <val0>)
+  (<input> ^block1.value <val1>)
+  (<input> ^block2.value <val2>)
+  (<input> ^block3.value <val3>)
+  (<input> ^block4.value <val4>)
+  (<input> ^block5.value <val5>)
+  (<input> ^block6.value <val6>)
+  (<input> ^block7.value <val7>)
+  (<input> ^block8.value <val8>)
+  (<input> ^block9.value <val9>)
+  (<input> ^block10.value <val10>)
+  (<input> ^block11.value <val11>)
+  (<input> ^block12.value <val12>)
+  (<input> ^block13.value <val13>)
+  (<input> ^block14.value <val14>)
+  (<input> ^block15.value <val15>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {generated*rule*template
+  :template
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction r)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.l <lVal>)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.d <dVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {generated*rule*template
+  :template
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction l)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.l <lVal>)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.d <dVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+sp {generated*rule*template
+  :template
+  (state <s> ^operator <op> +)
+  (<op> ^name move ^direction d)
+  (<s> ^io.input-link <input>)
+  (<op> ^name move ^direction r) 
+  (<input> ^<block>.value > 0)
+  (<input> ^<block>.value <val>)
+  (<input> ^<block>.u <uVal>)
+  (<input> ^<block>.l <lVal>)
+  (<input> ^<block>.r <rVal>)
+  (<input> ^<block>.d <dVal>)
+-->
+  (<s> ^operator <op> = 0)
+}
+
+##### general rewards
+
+sp {elaboration*moveUpOrDownWithVerticalMatch
+  (state <s> ^operator <op>)
+  (<op> ^name move ^direction << d u >>) 
+  (<s> ^downMatchCount > 0)
+  (<s> ^downMatchCount <matchCount>)
+  (<s> ^highDownMatch <highDown>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value (+ <highDown> <matchCount>))
+  (write |############################# REWARD move with VERTICAL match |(+ <highDown> <matchCount>)(crlf))
+}
+
+sp {elaboration*moveRightOrLeftWithHorizontalMatch
+  (state <s> ^operator <op>)
+  (<op> ^name move ^direction << l r >>) 
+  (<s> ^leftMatchCount > 0)
+  (<s> ^leftMatchCount <matchCount>)
+  (<s> ^highLeftMatch <highLeft>)
+  (<s> ^reward-link <r>)
+-->
+  (<r> ^reward <rr>)
+  (<rr> ^value (+ <highLeft> <matchCount>))
+  (write |#############################  REWARD move with HORIZONTAL match |(+ <highLeft> <matchCount>)(crlf))
+}
+
+#sp {elaboration*rewardHigherBottomBlocks
+#  (state <s> ^operator <op>)
+#  (<s> ^io.input-link <input>)
+#  (<op> ^name move)
+#  (<s> ^init true)
+#  (<s> ^readyForMove true)
+#  (<s> ^reward-link <r>)
+#  (<input> ^<block>.value > 0)
+#  (<input> ^<block>.value <val>)
+#  (<input> -^<block>.wall u)
+#  (<input> ^<block>.uBlock <uBlock>)
+#  (<input> ^<block2>.name = <uBlock>)
+#  (<input> ^<block2>.value <uVal>)
+#  (<input> ^<block>.value >= <uVal>)
+#-->
+#  (<r> ^reward <rr>)
+#  (<rr> ^value .00001)
+#  (write |#############################  REWARD higherbottom blocks .00001|(crlf))
+#}
+
+#sp {elaboration*rewardHigherLeftBlocks
+#  (state <s> ^operator <op>)
+#  (<s> ^io.input-link <input>)
+#  (<op> ^name move)
+#  (<s> ^init true)
+#  (<s> ^readyForMove true)
+#  (<s> ^reward-link <r>)
+#  (<input> ^<block>.value > 0)
+#  (<input> ^<block>.value <val>)
+#  (<input> -^<block>.wall r)
+#  (<input> ^<block>.rBlock <rBlock>)
+#  (<input> ^<block2>.name = <rBlock>)
+#  (<input> ^<block2>.value <rVal>)
+#  (<input> ^<block>.value >= <rVal>)
+#-->
+#  (<r> ^reward <rr>)
+#  (<rr> ^value .00001)
+#  (write |#############################  REWARD higherleft blocks .00001|(crlf))
+#}
+
+#sp {elaboration*penalizeLowerBottomBlocks
+#  (state <s> ^operator <op>)
+#  (<s> ^io.input-link <input>)
+#  (<op> ^name move)
+#  (<s> ^init true)
+#  (<s> ^readyForMove true)
+#  (<s> ^reward-link <r>)
+#  (<input> ^<block>.value > 0)
+#  (<input> ^<block>.value <val>)
+#  (<input> -^<block>.wall u)
+#  (<input> ^<block>.uBlock <uBlock>)
+#  (<input> ^<block2>.name = <uBlock>)
+#  (<input> ^<block2>.value <uVal>)
+#  (<input> ^<block>.value < <uVal>)
+#-->
+#  (<r> ^reward <rr>)
+#  (<rr> ^value -.00001)
+#  (write |#############################  PENALIZING lowerbottom blocks -.00001|(crlf))
+#}
+
+#sp {elaboration*penalizeLowerLeftBlocks
+#  (state <s> ^operator <op>)
+#  (<s> ^io.input-link <input>)
+#  (<op> ^name move)
+#  (<s> ^init true)
+#  (<s> ^readyForMove true)
+#  (<s> ^reward-link <r>)
+#  (<input> ^<block>.value > 0)
+#  (<input> ^<block>.value <val>)
+#  (<input> -^<block>.wall r)
+#  (<input> ^<block>.rBlock <rBlock>)
+#  (<input> ^<block2>.name = <rBlock>)
+#  (<input> ^<block2>.value <rVal>)
+#  (<input> ^<block>.value < <rVal>)
+#-->
+#  (<r> ^reward <rr>)
+#  (<rr> ^value -.00001)
+#  (write |#############################  PENALIZING lowerleft blocks -.00001|(crlf))
+#}
+
